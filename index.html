@@ -1,0 +1,69 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--External Libraries!-->
+<script type="text/javascript" src = "GLEAT/js/gl-matrix-min.js"></script>
+<script type="text/javascript" src="GLEAT/js/webgl-utils.js"></script>
+<script type="text/javascript" src="GLEAT/js/webgl-debug.js"></script>
+<script type="text/javascript" src="GLEAT/js/numeric-1.2.6.min.js"></script>
+<script type="text/javascript" src="GLEAT/js/jquery-1.11.1.min.js"></script>
+
+<!--D3 stuff!-->
+<script src="d3/d3-collection.v0.1.min.js"></script>
+<script src="d3/d3-dispatch.v0.3.min.js"></script>
+<script src="d3/d3-dsv.v0.2.min.js"></script>
+<script src="d3/d3-request.min.js"></script>
+<script src="d3/d3.min.js"></script>
+
+<!--Our Scripts!-->
+<script src="GLEAT/Geometry/Primitives3D.js"></script>
+<script src="GLEAT/Geometry/Cameras3D.js"></script>
+<script src="PointCloud.js"></script>
+</head>
+
+<body>
+
+<table>
+<tr><td><h3>Point Cloud File</h3></td><td><input type = "file" id = "pcInput"></td></tr>
+</table>
+<canvas id="MainGLCanvas" style="border: none;" width="800" height="600"></canvas>
+
+
+<script>
+    var glcanvas = document.getElementById("MainGLCanvas");
+    glcanvas.addEventListener("contextmenu", function(e){ e.stopPropagation(); e.preventDefault(); return false; }); //Need this to disable the menu that pops up on right clicking
+    SimplePCCanvas(glcanvas);
+
+    /////////////////////////////////////////////////////
+    //Setup pc input
+    /////////////////////////////////////////////////////
+    function onLoadPointCloudFile(e) {
+        var lines = this.result.split("\n");
+        var points = [];
+        var colors = [];
+        for (var i = 0; i < lines.length; i++) {
+            var f = lines[i].split(" ");
+            if (f.length == 6) {
+                for (var k = 0; k < f.length; k++) {
+                    f[k] = parseFloat(f[k]);
+                }
+                points.push([f[0], f[1], f[2]]);
+                colors.push([f[3], f[4], f[5]]);
+            }
+        }
+        glcanvas.loadPointCloud(points, colors);
+    }
+    var pcInput = document.getElementById('pcInput');
+    var result = document.getElementById('text');
+    
+    pcInput.addEventListener('change', function(e) {
+        var file = pcInput.files[0];
+        var reader = new FileReader();
+        reader.onload = onLoadPointCloudFile;
+        reader.readAsText(file);
+    });
+</script>
+
+</body>
+</html>
