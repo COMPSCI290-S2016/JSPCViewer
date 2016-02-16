@@ -22,6 +22,7 @@
 <script src="GLEAT/DrawingUtils/Shaders.js"></script>
 <script src="GLEAT/DrawingUtils/SimpleDraw.js"></script>
 <script src="PointCloud.js"></script>
+<script src="PCA.js"></script>
 </head>
 
 <body>
@@ -29,13 +30,21 @@
 <table>
 <tr><td><h3>Point Cloud File</h3></td><td><input type = "file" id = "pcInput"></td></tr>
 </table>
-<canvas id="MainGLCanvas" style="border: none;" width="800" height="600"></canvas>
 
+<table>
+<tr><td>Display PCA</td><td><input type="checkbox" id="displayPCACheckbox"/></td></tr>
+</table>
+
+<table border = "1"><tr><td>
+<canvas id="MainGLCanvas" style="border: none;" width="800" height="600"></canvas>
+</td></tr>
+</table>
 
 <script>
     var glcanvas = document.getElementById("MainGLCanvas");
     glcanvas.addEventListener("contextmenu", function(e){ e.stopPropagation(); e.preventDefault(); return false; }); //Need this to disable the menu that pops up on right clicking
     SimplePCCanvas(glcanvas, "GLEAT/DrawingUtils");
+    var displayPCA = true;
 
     /////////////////////////////////////////////////////
     //Setup pc input
@@ -54,7 +63,7 @@
                 colors.push([f[3], f[4], f[5]]);
             }
         }
-        glcanvas.loadPointCloud(points, colors);
+        glcanvas.loadPointCloud(points, colors, displayPCA);
     }
     var pcInput = document.getElementById('pcInput');
     var result = document.getElementById('text');
@@ -65,6 +74,14 @@
         reader.onload = onLoadPointCloudFile;
         reader.readAsText(file);
     });
+    
+	var displayPCACheckbox = document.getElementById('displayPCACheckbox');
+    displayPCACheckbox.addEventListener('change', function(e) {
+        displayPCA = displayPCACheckbox.checked;
+        glcanvas.reRenderPointCloud(displayPCA);
+        requestAnimFrame(glcanvas.repaint);
+    });
+    displayPCACheckbox.checked = true;
 </script>
 
 </body>

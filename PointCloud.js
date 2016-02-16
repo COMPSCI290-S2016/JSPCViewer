@@ -11,18 +11,36 @@ function SimplePCCanvas(glcanvas, shadersRelPath) {
     glcanvas.farDist = 1.0;
     
     
-    glcanvas.loadPointCloud = function(points, colors) {
+    glcanvas.reRenderPointCloud = function(drawPCA) {
         glcanvas.drawer.reset();
+        for (var i = 0; i < glcanvas.points.length; i++) {
+            glcanvas.drawer.drawPoint(glcanvas.points[i], glcanvas.colors[i]);
+        }
+        if (drawPCA) {
+            var res = doPCA(glcanvas.points);
+            var mean = res.mean;
+            var E = res.E;
+            var lam = res.lambda;
+            colors = [[0.0, 0.0, 1.0], [0.0, 0.5, 0.0], [0.0, 0.5, 0.5]];
+            for (var k = 0; k < 3; k++) {
+                glcanvas.drawer.drawLine(mean, [mean[0]+lam[k]*E[0][k], mean[1]+lam[k]*E[1][k], mean[2]+lam[k]*E[2][k]], colors[k]);
+            }
+        }    
+        requestAnimFrame(glcanvas.repaint);
+    }
+    
+    glcanvas.loadPointCloud = function(points, colors, drawPCA) {
+        glcanvas.points = points;
+        glcanvas.colors = colors;
         //Center camera
-        var P0 = points[0]
+        var P0 = glcanvas.points[0]
         var bbox = new AABox3D(P0[0], P0[0], P0[1], P0[1], P0[2], P0[2]);
-        for (var i = 0; i < points.length; i++) {
-            bbox.addPoint(points[i]);
-            glcanvas.drawer.drawPoint(points[i], colors[i]);
+        for (var i = 0; i < glcanvas.points.length; i++) {
+            bbox.addPoint(glcanvas.points[i]);
         }
         glcanvas.camera.centerOnBBox(bbox);
         glcanvas.farDist = glcanvas.camera.R;
-        requestAnimFrame(glcanvas.repaint);
+        glcanvas.reRenderPointCloud(drawPCA);
     }
     
     /////////////////////////////////////////////////////
@@ -31,11 +49,13 @@ function SimplePCCanvas(glcanvas, shadersRelPath) {
     glcanvas.repaint = function() {
         var gl = glcanvas.gl;
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+        gl.enable(gl.DEPTH_TEST);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         
         var pMatrix = mat4.create();
         mat4.perspective(pMatrix, 45, gl.viewportWidth / gl.viewportHeight, glcanvas.camera.R/100.0, Math.max(glcanvas.farDist, glcanvas.camera.R*2));
         var mvMatrix = glcanvas.camera.getMVMatrix();
+        glcanvas.gl.lineWidth(10.0);
         glcanvas.drawer.repaint(pMatrix, mvMatrix);
     }
     
